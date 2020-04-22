@@ -131,3 +131,6 @@ dmypy.json
 # intellij
 .idea/
 DeepSceneDetect.iml
+
+# project related
+data/
