@@ -67,6 +67,6 @@ if __name__ == '__main__':
 
         try:
             cut_video(path)
-        except:
+        except OSError:
             # folder already exists, continue
             continue
