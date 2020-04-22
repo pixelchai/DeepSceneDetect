@@ -18,6 +18,12 @@ def run_out(command):
     print("= " + str(output))
     return output
 
+def get_length(path):
+    # https://superuser.com/a/945604/581663
+    return float(run_out("ffprobe -v error -show_entries "
+                         "format=duration -of default=noprint_wrappers=1:nokey=1 \"{}\""
+                         .format(path)))
+
 class TmpFile:
     def __init__(self, path):
         self.path = path

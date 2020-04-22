@@ -1,12 +1,6 @@
 import os
 import utils
 
-def get_length(path):
-    # https://superuser.com/a/945604/581663
-    return float(utils.run_out("ffprobe -v error -show_entries "
-                               "format=duration -of default=noprint_wrappers=1:nokey=1 \"{}\""
-                               .format(path)))
-
 def get_timestamps(path, thresh=0.2):
     # https://stackoverflow.com/a/38205105/5013267
 
@@ -44,7 +38,7 @@ def cut_video(path, remove_short=True):
         i = 0
         for file_segment_path in os.listdir(new_dir):
             path = os.path.join(new_dir, file_segment_path)
-            if get_length(path) < 5:
+            if utils.get_length(path) < 5:
                 os.remove(path)
                 print("Removed short segment: {}".format(path))
             else:
