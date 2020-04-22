@@ -1,13 +1,6 @@
 import os
+import utils
 from abc import ABC, abstractmethod
-
-DIR_ROOT = "data"
-DIR_INPUT = os.path.join(DIR_ROOT, "input")
-DIR_CLIPS = os.path.join(DIR_ROOT, "clips")
-DIR_OUT = os.path.join(DIR_ROOT, "out")
-
-def ffmpeg(command):
-    print(command)
 
 class VideoCutter(ABC):
     @abstractmethod
@@ -20,7 +13,7 @@ class RandomCutter(VideoCutter):
         self.max_length = max_length
 
     def cut(self, path: str):
-        ffmpeg("wow")
+        utils.run("wow")
 
 
 class ClipJoiner:
@@ -39,5 +32,5 @@ class Generator:
 
 
 if __name__ == '__main__':
-    os.makedirs(DIR_INPUT, exist_ok=True)
+    os.makedirs(utils.DIR_INPUT, exist_ok=True)
     Generator(RandomCutter(), ClipJoiner()).gen()
