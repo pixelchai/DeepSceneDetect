@@ -11,6 +11,13 @@ def run(command):
     print("> " + str(command))
     subprocess.run(command, shell=True)
 
+def run_out(command):
+    print("> " + str(command))
+    result = subprocess.run(command, stdout=subprocess.PIPE, shell=True)
+    output = result.stdout.decode('utf-8')
+    print("= " + str(output))
+    return output
+
 class TmpFile:
     def __init__(self, path):
         self.path = path
@@ -21,5 +28,6 @@ class TmpFile:
         return self.path
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # delete temp file
-        os.remove(self.path)
+        # delete temp file if exists
+        if os.path.isfile(self.path):
+            os.remove(self.path)
