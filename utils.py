@@ -8,6 +8,7 @@ DIR_OUT = os.path.join(DIR_ROOT, "out")
 DIR_TMP = os.path.join(DIR_ROOT, "tmp")
 
 def run(command):
+    print("> " + str(command))
     subprocess.run(command, shell=True)
 
 class TmpFile:
