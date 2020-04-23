@@ -31,7 +31,7 @@ def cut_video(path, remove_short=True):
             timestamps[i],  # first time
             timestamps[i+1],
             path,
-            os.path.join(new_dir, "{:04d}{}".format(i, ext)))  # file path for segment (inherit original file extension)
+            os.path.join(new_dir, "{:06d}{}".format(i, ext)))  # file path for segment (inherit original file extension)
         )
 
     if remove_short:
@@ -45,7 +45,7 @@ def cut_video(path, remove_short=True):
                 # rename so that file numberings still sequential
                 os.rename(
                     path,
-                    os.path.join(new_dir, "{:04d}{}".format(i, os.path.splitext(file_segment_path)[1]))
+                    os.path.join(new_dir, "{:0d}{}".format(i, os.path.splitext(file_segment_path)[1]))
                 )
                 i += 1
 

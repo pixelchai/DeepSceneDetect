@@ -19,7 +19,7 @@ class RandomClipper(VideoClipper):
 
         total_length = utils.get_length(path)
         cur_time = 0
-        i = 0
+        i = len(os.listdir(utils.DIR_CLIPS))  # for continuing numbering rather than overwriting videos
         while cur_time <= total_length:
             duration = random.uniform(self.min_length, self.max_length)
 
@@ -27,7 +27,7 @@ class RandomClipper(VideoClipper):
                 cur_time,  # first time
                 duration,
                 path,
-                os.path.join(utils.DIR_CLIPS, "{:04d}{}".format(i, ext)))  # file path for segment (inherit original file extension)
+                os.path.join(utils.DIR_CLIPS, "{:06d}{}".format(i, ext)))  # file path for segment (inherit original file extension)
             )
 
             cur_time += duration
@@ -59,4 +59,5 @@ if __name__ == '__main__':
     # Generator(RandomClipper(), ClipJoiner()).gen()
 
     # debug:
-    RandomClipper().clip("data/input/heidelberg/0000.mp4")
+    # RandomClipper().clip("data/input/heidelberg/0000.mp4")
+    ConcatJoiner().join("data/clips/0000.mp4", "data/clips/0002.mp4", "data/tmp/out.mp4")

@@ -29,9 +29,9 @@ def ffmpeg_concat(files: List[str], out_file: str):
     with TmpFile(os.path.join(DIR_TMP, "list.txt")) as list_file:
         with open(list_file, "w") as f:
             for file in files:
-                f.write("file \"" + str(file) + "\"")
+                f.write("file '" + os.path.abspath(str(file)) + "'\n")
 
-        run("ffmpeg -f concat -safe 0 -i {} -c copy {}".format(list_file, out_file))
+        run("ffmpeg -y -f concat -safe 0 -i \"{}\" -c copy \"{}\"".format(list_file, out_file))
 
 class TmpFile:
     def __init__(self, path):
@@ -46,5 +46,3 @@ class TmpFile:
         # delete temp file if exists
         if os.path.isfile(self.path):
             os.remove(self.path)
-
-ffmpeg_concat("")
