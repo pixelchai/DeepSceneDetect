@@ -1,5 +1,8 @@
 import os
 import random
+import shutil
+from typing import Optional
+
 import utils
 from abc import ABC, abstractmethod
 
@@ -19,7 +22,7 @@ class RandomClipper(VideoClipper):
 
         total_length = utils.get_length(path)
         cur_time = 0
-        i = len(os.listdir(utils.DIR_CLIPS))  # for continuing numbering rather than overwriting videos
+        i = utils.get_num_clips()  # for continuing numbering rather than overwriting videos
         while cur_time <= total_length:
             duration = random.uniform(self.min_length, self.max_length)
 
@@ -44,18 +47,80 @@ class ConcatJoiner(ClipJoiner):
 
 
 class Generator:
-    def __init__(self, clipper: VideoClipper, joiner: ClipJoiner):
+    def __init__(self, clipper: Optional[VideoClipper], joiner: ClipJoiner):
         self.clipper = clipper
         self.joiner = joiner
 
-    def gen(self, *folders):
-        # clip
+    def _clip(self, folders):
         if self.clipper is not None:
             for folder in folders:
                 for file in os.listdir(folder):
                     self.clipper.clip(os.path.join(folder, file))
 
-# todo: skip generator, shuffle generator, mix video sources generator
+    def _join(self):
+        # default behaviour: just join sequentially
+        self._join_by_ranking(range(utils.get_num_clips()))
+
+    def _join_by_ranking(self, ranks):
+        os.makedirs(utils.DIR_OUT, exist_ok=True)
+
+        clips = [os.path.join(utils.DIR_CLIPS, file) for file in sorted(os.listdir(utils.DIR_CLIPS))]
+
+        # init: copy the first clip to the out folder
+        ext = os.path.splitext(clips[0])[1]
+        out_file = os.path.join(utils.DIR_OUT, "out"+ext)
+        out_tmp_file = os.path.join(utils.DIR_OUT, "out_tmp"+ext)  # used below
+        shutil.copy2(clips[0], out_file)
+
+        for i in range(1, len(clips)):
+            # copy next clip to the out folder
+            ext = os.path.splitext(clips[i])[1]
+            next_file = os.path.join(utils.DIR_OUT, "next"+ext)
+            shutil.copy2(clips[i], next_file)
+
+            # rename 'out' file (for ffmpeg)
+            os.rename(out_file, out_tmp_file)
+            self.joiner.join(out_tmp_file, next_file, out_file)
+
+            # cleanup
+            os.remove(out_tmp_file)
+            os.remove(next_file)
+
+    def gen(self, *folders):
+            self._clip(folders)
+            self._join()
+
+class ShuffleGenerator(Generator):
+    @staticmethod
+    def _get_random_ranking(n):
+        """
+        Returns a list of numbers [0, n-1] shuffled such that
+        no two numbers in the list are consecutive
+        """
+        buf = []
+        values = set(range(n))
+
+        # initial number is any random number
+        num = random.choice(list(values))
+        buf.append(num)
+        values.discard(num)
+
+        # the rest of the numbers...
+        for i in range(n-1):
+            # next number: select number from the remaining values but NOT num+1
+            possible_values = list(values - {num + 1})
+            if len(possible_values) > 0:
+                num = random.choice(possible_values)
+                values.discard(num)
+                buf.append(num)
+            else:
+                # in the unlucky case where the last number that remains
+                # is consecutive to the previous number
+                buf.append(values.pop())  # oh well, whatever just push it to the buffer anyway
+
+        return buf
+
+# todo: skip generator, shuffle generator
 
 
 if __name__ == '__main__':
@@ -66,6 +131,6 @@ if __name__ == '__main__':
     # RandomClipper().clip("data/input/heidelberg/0000.mp4")
     # ConcatJoiner().join("data/clips/0000.mp4", "data/clips/0002.mp4", "data/tmp/out.mp4")
     Generator(
-        RandomClipper(),
+        None,
         ConcatJoiner()
     ).gen("data/input/heidelberg/")

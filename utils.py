@@ -25,6 +25,10 @@ def get_length(path):
                          "format=duration -of default=noprint_wrappers=1:nokey=1 \"{}\""
                          .format(path)))
 
+def get_num_clips() -> int:
+    return len(os.listdir(DIR_CLIPS))
+
+
 def ffmpeg_concat(files: List[str], out_file: str):
     with TmpFile(os.path.join(DIR_TMP, "list.txt")) as list_file:
         with open(list_file, "w") as f:
