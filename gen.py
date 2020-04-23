@@ -35,8 +35,12 @@ class RandomClipper(VideoClipper):
 
 class ClipJoiner:
     @abstractmethod
-    def join(self, first_video: str, second_video: str) -> str:
+    def join(self, first_file: str, second_file: str, out_file: str):
         pass
+
+class ConcatJoiner(ClipJoiner):
+    def join(self, first_file: str, second_file: str, out_file: str):
+        utils.ffmpeg_concat([first_file, second_file], out_file)
 
 
 class Generator:

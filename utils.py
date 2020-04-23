@@ -1,5 +1,6 @@
 import os
 import subprocess
+from typing import List
 
 DIR_ROOT = "data"
 DIR_INPUT = os.path.join(DIR_ROOT, "input")
@@ -24,6 +25,14 @@ def get_length(path):
                          "format=duration -of default=noprint_wrappers=1:nokey=1 \"{}\""
                          .format(path)))
 
+def ffmpeg_concat(files: List[str], out_file: str):
+    with TmpFile(os.path.join(DIR_TMP, "list.txt")) as list_file:
+        with open(list_file, "w") as f:
+            for file in files:
+                f.write("file \"" + str(file) + "\"")
+
+        run("ffmpeg -f concat -safe 0 -i {} -c copy {}".format(list_file, out_file))
+
 class TmpFile:
     def __init__(self, path):
         self.path = path
@@ -37,3 +46,5 @@ class TmpFile:
         # delete temp file if exists
         if os.path.isfile(self.path):
             os.remove(self.path)
+
+ffmpeg_concat("")
