@@ -1,0 +1,9 @@
+Generating:
+-----------
+
+(seconds)
+time taken to join two clips using CrossFadeJoiner = 80.67, 74.97
+time taken for those same two clips using ConcatJoiner = 0.61
+
+two different clips:
+CrossFadeJoiner = 60.76

@@ -15,7 +15,7 @@ def run(command):
 def run_out(command):
     print("> " + str(command))
     result = subprocess.run(command, stdout=subprocess.PIPE, shell=True)
-    output = result.stdout.decode('utf-8')
+    output = result.stdout.decode('utf-8').rstrip()
     print("= " + str(output))
     return output
 
@@ -24,6 +24,11 @@ def get_length(path):
     return float(run_out("ffprobe -v error -show_entries "
                          "format=duration -of default=noprint_wrappers=1:nokey=1 \"{}\""
                          .format(path)))
+
+def get_resolution(path):
+    # https://superuser.com/a/841379/581663
+    return run_out("ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 \"{}\""
+                   .format(path))
 
 def get_num_clips() -> int:
     return len(os.listdir(DIR_CLIPS))

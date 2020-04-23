@@ -1,6 +1,7 @@
 import os
 import random
 import shutil
+import time
 from typing import Optional
 
 import utils
@@ -44,6 +45,29 @@ class ClipJoiner:
 class ConcatJoiner(ClipJoiner):
     def join(self, first_file: str, second_file: str, out_file: str):
         utils.ffmpeg_concat([first_file, second_file], out_file)
+
+class CrossFadeJoiner(ClipJoiner):
+    def __init__(self, fade_duration=1):
+        super().__init__()
+        self.fade_duration = fade_duration
+
+    def join(self, first_file: str, second_file: str, out_file: str):
+        # https://video.stackexchange.com/a/17504/25336
+
+        first_length = utils.get_length(first_file)
+        second_length = utils.get_length(second_file)
+        resolution = utils.get_resolution(first_file)
+
+        utils.run(f"ffmpeg -i {first_file} -i {second_file} "
+                  f"-filter_complex "
+                  f"\"color=black:{resolution}:d={first_length + second_length - self.fade_duration}[base];"
+                  f"[0:v]setpts=PTS-STARTPTS[v0];"
+                  f"[1:v]format=yuva420p,fade=in:st=0:d={self.fade_duration}:alpha=1,"
+                  f"     setpts=PTS-STARTPTS+(({first_length - self.fade_duration})/TB)[v1];"
+                  f"[base][v0]overlay[tmp];"
+                  f"[tmp][v1]overlay,format=yuv420p[fv];"
+                  f"[0:a][1:a]acrossfade=d={self.fade_duration}[fa]\" "
+                  f"-map \"[fv]\" -map \"[fa]\" {out_file}")
 
 
 class Generator:
@@ -130,7 +154,10 @@ if __name__ == '__main__':
     # debug:
     # RandomClipper().clip("data/input/heidelberg/0000.mp4")
     # ConcatJoiner().join("data/clips/0000.mp4", "data/clips/0002.mp4", "data/tmp/out.mp4")
+
+    initial_time = time.time()
     Generator(
         None,
-        ConcatJoiner()
+        CrossFadeJoiner()
     ).gen("data/input/heidelberg/")
+    print(time.time() - initial_time)
