@@ -44,12 +44,16 @@ class ConcatJoiner(ClipJoiner):
 
 
 class Generator:
-    def __init__(self, cutter, joiner):
-        self.cutter = cutter
+    def __init__(self, clipper: VideoClipper, joiner: ClipJoiner):
+        self.clipper = clipper
         self.joiner = joiner
 
-    def gen(self, *paths):
-        pass  # todo
+    def gen(self, *folders):
+        # clip
+        if self.clipper is not None:
+            for folder in folders:
+                for file in os.listdir(folder):
+                    self.clipper.clip(os.path.join(folder, file))
 
 # todo: skip generator, shuffle generator, mix video sources generator
 
@@ -60,4 +64,8 @@ if __name__ == '__main__':
 
     # debug:
     # RandomClipper().clip("data/input/heidelberg/0000.mp4")
-    ConcatJoiner().join("data/clips/0000.mp4", "data/clips/0002.mp4", "data/tmp/out.mp4")
+    # ConcatJoiner().join("data/clips/0000.mp4", "data/clips/0002.mp4", "data/tmp/out.mp4")
+    Generator(
+        RandomClipper(),
+        ConcatJoiner()
+    ).gen("data/input/heidelberg/")
