@@ -1,6 +1,9 @@
 # DeepSceneDetect
 Using machine learning to detect scene changes in video (WIP)
 
+# Requirements
+- ffmpeg
+
 ## Training
 ### Generating training data
 `gen.py` is used for generating training data. It does this by cutting up and combining input uncut footage,

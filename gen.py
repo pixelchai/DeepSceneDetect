@@ -47,7 +47,7 @@ class ConcatJoiner(ClipJoiner):
         utils.ffmpeg_concat([first_file, second_file], out_file)
 
 class CrossFadeJoiner(ClipJoiner):
-    def __init__(self, fade_duration=1):
+    def __init__(self, fade_duration: float = 1):
         super().__init__()
         self.fade_duration = fade_duration
 
@@ -63,11 +63,21 @@ class CrossFadeJoiner(ClipJoiner):
                   f"\"color=black:{resolution}:d={first_length + second_length - self.fade_duration}[base];"
                   f"[0:v]setpts=PTS-STARTPTS[v0];"
                   f"[1:v]format=yuva420p,fade=in:st=0:d={self.fade_duration}:alpha=1,"
-                  f"     setpts=PTS-STARTPTS+(({first_length - self.fade_duration})/TB)[v1];"
+                  f"     setpts=PTS-STARTPTS+({first_length - self.fade_duration}/TB)[v1];"
                   f"[base][v0]overlay[tmp];"
                   f"[tmp][v1]overlay,format=yuv420p[fv];"
                   f"[0:a][1:a]acrossfade=d={self.fade_duration}[fa]\" "
                   f"-map \"[fv]\" -map \"[fa]\" {out_file}")
+
+class RandomCrossFadeJoiner(CrossFadeJoiner):
+    def __init__(self, min_fade_duration=0, max_fade_duration=1):
+        super().__init__()
+        self.min_fade_duration = min_fade_duration
+        self.max_fade_duration = max_fade_duration
+
+    def join(self, first_file: str, second_file: str, out_file: str):
+        self.fade_duration = random.randint(self.min_fade_duration, self.max_fade_duration)
+        super().join(first_file, second_file, out_file)
 
 
 class Generator:
@@ -158,6 +168,6 @@ if __name__ == '__main__':
     initial_time = time.time()
     Generator(
         None,
-        CrossFadeJoiner()
+        CrossFadeJoiner(fade_duration=0.2)
     ).gen("data/input/heidelberg/")
     print(time.time() - initial_time)

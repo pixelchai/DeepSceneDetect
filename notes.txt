@@ -6,4 +6,11 @@ time taken to join two clips using CrossFadeJoiner = 80.67, 74.97
 time taken for those same two clips using ConcatJoiner = 0.61
 
 two different clips:
-CrossFadeJoiner = 60.76
+CrossFadeJoiner = 60.76, 48.10, 46.27, 43.17, 42.29
+ConcatJoiner = 0.19, 0.18, 0.19
+
+note: found moviepy to be too slow
+note: also ffmpeg-concat was a bit dodgy, see: https://github.com/transitive-bullshit/ffmpeg-concat/issues/72
+                                          also this problem: https://github.com/transitive-bullshit/ffmpeg-concat/issues/8
+note: also editly seems promising but early in development + dodgy, see: https://github.com/mifi/editly/issues/14
+note: ffmpeg gl transitions: failed to compile for me (https://github.com/transitive-bullshit/ffmpeg-gl-transition)
