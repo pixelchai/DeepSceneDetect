@@ -154,6 +154,9 @@ class ShuffleGenerator(Generator):
 
         return buf
 
+    def _join(self):
+        super()._join_by_ranking(self._get_random_ranking(utils.get_num_clips()))
+
 # todo: skip generator, shuffle generator
 
 
@@ -166,8 +169,8 @@ if __name__ == '__main__':
     # ConcatJoiner().join("data/clips/0000.mp4", "data/clips/0002.mp4", "data/tmp/out.mp4")
 
     initial_time = time.time()
-    Generator(
+    ShuffleGenerator(
         None,
-        CrossFadeJoiner(fade_duration=0.2)
+        ConcatJoiner()
     ).gen("data/input/heidelberg/")
     print(time.time() - initial_time)
