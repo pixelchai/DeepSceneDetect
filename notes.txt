@@ -14,3 +14,16 @@ note: also ffmpeg-concat was a bit dodgy, see: https://github.com/transitive-bul
                                           also this problem: https://github.com/transitive-bullshit/ffmpeg-concat/issues/8
 note: also editly seems promising but early in development + dodgy, see: https://github.com/mifi/editly/issues/14
 note: ffmpeg gl transitions: failed to compile for me (https://github.com/transitive-bullshit/ffmpeg-gl-transition)
+
+Keep getting this when trying to use CrossFadeJoiner:
+[mov,mp4,m4a,3gp,3g2,mj2 @ 0x55d9cbd1f340] moov atom not found
+data/out/out_tmp.mp4: Invalid data found when processing input
+
+using mkv instead didn't help:
+[matroska,webm @ 0x562c18989340] EBML header parsing failed
+data/out/out_tmp.mkv: Invalid data found when processing input
+
+fixed by actually reencoding stuff ^
+
+combining 6 videos with CrossFade:
+181.39s

@@ -13,9 +13,10 @@ class VideoClipper(ABC):
         pass
 
 class RandomClipper(VideoClipper):
-    def __init__(self, min_length: int = 15, max_length: int = 30):
+    def __init__(self, min_length: int = 15, max_length: int = 30, reencode=True):
         self.min_length = min_length
         self.max_length = max_length
+        self.reencode = reencode
 
     def clip(self, path: str):
         ext = os.path.splitext(path)[1]
@@ -27,12 +28,22 @@ class RandomClipper(VideoClipper):
         while cur_time <= total_length:
             duration = random.uniform(self.min_length, self.max_length)
 
-            utils.run("ffmpeg -y -ss {0} -i \"{2}\" -t {1} -c copy \"{3}\"".format(
-                cur_time,  # first time
-                duration,
-                path,
-                os.path.join(utils.DIR_CLIPS, "{:06d}{}".format(i, ext)))  # file path for segment (inherit original file extension)
-            )
+            if not self.reencode:
+                # NOTE: performs output seeking -- times may therefore not be entirely accurate,
+                #       but this way, don't need to re-encode
+                utils.run("ffmpeg -y -i \"{2}\" -ss {0} -t {1} -c copy \"{3}\"".format(
+                    cur_time,  # first time
+                    duration,
+                    path,
+                    os.path.join(utils.DIR_CLIPS, "{:06d}{}".format(i, ext)))  # file path for segment (inherit original file extension)
+                )
+            else:
+                utils.run("ffmpeg -y -i \"{2}\" -ss {0} -t {1} \"{3}\"".format(
+                    cur_time,  # first time
+                    duration,
+                    path,
+                    os.path.join(utils.DIR_CLIPS, "{:06d}{}".format(i, ext)))  # file path for segment (inherit original file extension)
+                )
 
             cur_time += duration
             i += 1
@@ -70,7 +81,7 @@ class CrossFadeJoiner(ClipJoiner):
                   f"-map \"[fv]\" -map \"[fa]\" {out_file}")
 
 class RandomCrossFadeJoiner(CrossFadeJoiner):
-    def __init__(self, min_fade_duration=0, max_fade_duration=1):
+    def __init__(self, min_fade_duration: float = 0.2, max_fade_duration: float = 1):
         super().__init__()
         self.min_fade_duration = min_fade_duration
         self.max_fade_duration = max_fade_duration
@@ -96,19 +107,22 @@ class Generator:
         self._join_by_ranking(range(utils.get_num_clips()))
 
     def _join_by_ranking(self, ranks):
+        with open("ranks.txt", "w") as f:
+            f.write(str(ranks))
+
         os.makedirs(utils.DIR_OUT, exist_ok=True)
 
         clips = [os.path.join(utils.DIR_CLIPS, file) for file in sorted(os.listdir(utils.DIR_CLIPS))]
 
         # init: copy the first clip to the out folder
-        ext = os.path.splitext(clips[0])[1]
+        ext = os.path.splitext(clips[ranks[0]])[1]
         out_file = os.path.join(utils.DIR_OUT, "out"+ext)
         out_tmp_file = os.path.join(utils.DIR_OUT, "out_tmp"+ext)  # used below
-        shutil.copy2(clips[0], out_file)
+        shutil.copy2(clips[ranks[0]], out_file)
 
         for i in range(1, len(clips)):
             # copy next clip to the out folder
-            ext = os.path.splitext(clips[i])[1]
+            ext = os.path.splitext(clips[ranks[i]])[1]
             next_file = os.path.join(utils.DIR_OUT, "next"+ext)
             shutil.copy2(clips[i], next_file)
 
@@ -165,12 +179,13 @@ if __name__ == '__main__':
     # Generator(RandomClipper(), ClipJoiner()).gen()
 
     # debug:
-    # RandomClipper().clip("data/input/heidelberg/0000.mp4")
+    RandomClipper(5, 30).clip("data/input/small/out.mkv")
     # ConcatJoiner().join("data/clips/0000.mp4", "data/clips/0002.mp4", "data/tmp/out.mp4")
 
-    initial_time = time.time()
-    ShuffleGenerator(
-        None,
-        ConcatJoiner()
-    ).gen("data/input/heidelberg/")
-    print(time.time() - initial_time)
+    # initial_time = time.time()
+    # ShuffleGenerator(
+    #     # RandomClipper(min_length=5, max_length=30),
+    #     None,
+    #     RandomCrossFadeJoiner(0.2, 1)
+    # ).gen("data/input/small/")
+    # print(time.time() - initial_time)
